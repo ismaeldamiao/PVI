@@ -2,7 +2,7 @@
    Macro library to implement various methods to solve the
    initial value problem.
 
-   Last modified: April 08, 2024
+   Last modified: January 08, 2026
    *****************************************************************************
    E-mail: ismlxd@gmail.com
    Site: https://ismdamiao.github.io/
@@ -41,12 +41,12 @@ extern "C" {
 #include <stddef.h>
 #include <stdlib.h>
 
-#define PVI_CORPUS double
-#define PVI_FAC_ALIQUID()
+#define PVI_CORPUS typeof(*(X))
+#define PVI_FAC_ALIQUID
 #define PVI_ALLOCARE() (PVI_CORPUS*)malloc(pvi_dimensio*sizeof(PVI_CORPUS))
 
 static size_t pvi_dimensio = (size_t)1;
-static double pvi_h = 0.1, pvi_finalis = 1.0;
+static double pvi_h = 0.125, pvi_finalis = 1.0;
 
 /* ------------------------------------
    Metodos de Runge-Kutta
@@ -55,9 +55,10 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
 #define PVI_INTEGRATOR_EULER(t, X, X_punctum) \
 {\
    size_t pvi_index;\
-   PVI_CORPUS *pvi_inclinatio = NULL;\
+   typeof(*(X)) *pvi_inclinatio = NULL;\
 \
-   pvi_inclinatio = PVI_ALLOCARE();\
+   pvi_inclinatio = (typeof(pvi_inclinatio)) \
+      malloc(pvi_dimensio*sizeof(typeof(*(X))));\
 \
    while(t < pvi_finalis){\
       for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
@@ -65,7 +66,7 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
       for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
          (X)[pvi_index] += pvi_inclinatio[pvi_index] * pvi_h;\
       t += pvi_h;\
-      PVI_FAC_ALIQUID();\
+      PVI_FAC_ALIQUID \
    }\
    free(pvi_inclinatio);\
 }
@@ -75,13 +76,14 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
 {\
    size_t pvi_index;\
    double pvi_h2;\
-   PVI_CORPUS \
+   typeof(*(X)) *pvi_buf, \
       *pvi_inclinatio[2] = { NULL, NULL },\
       *pvi_Xaux = NULL;\
 \
-   pvi_inclinatio[0] = PVI_ALLOCARE();\
-   pvi_inclinatio[1] = PVI_ALLOCARE();\
-   pvi_Xaux = PVI_ALLOCARE();\
+   pvi_buf = (typeof(pvi_buf))malloc(3*pvi_dimensio*sizeof(typeof(*(X)))); \
+   pvi_inclinatio[0] = pvi_buf;\
+   pvi_inclinatio[1] = pvi_buf + 1*pvi_dimensio; \
+   pvi_Xaux = pvi_buf + 2*pvi_dimensio; \
 \
    pvi_h2 = 0.5 * pvi_h;\
 \
@@ -99,11 +101,9 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
          (X)[pvi_index] += pvi_h2 * \
             (pvi_inclinatio[0][pvi_index] + pvi_inclinatio[1][pvi_index]);\
       }\
-      PVI_FAC_ALIQUID();\
+      PVI_FAC_ALIQUID \
    }\
-   free(pvi_inclinatio[0]);\
-   free(pvi_inclinatio[1]);\
-   free(pvi_Xaux);\
+   free(pvi_buf);\
 }
 
 #define PVI_INTEGRATOR_RK4(t, X, X_punctum) \
@@ -111,18 +111,19 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
    size_t pvi_index;\
    double pvi_h2, pvi_h6;\
    double pvi__t_aux;\
-   PVI_CORPUS \
+   typeof(*(X)) *pvi_buf, \
       *pvi_inclinatio[4] = { NULL, NULL, NULL, NULL },\
       *pvi_Xaux[2] = {NULL, NULL};\
 \
    (void)pvi__t_aux;\
 \
-   pvi_inclinatio[0] = PVI_ALLOCARE();\
-   pvi_inclinatio[1] = PVI_ALLOCARE();\
-   pvi_inclinatio[2] = PVI_ALLOCARE();\
-   pvi_inclinatio[3] = PVI_ALLOCARE();\
-   pvi_Xaux[0] = PVI_ALLOCARE();\
-   pvi_Xaux[1] = PVI_ALLOCARE();\
+   pvi_buf = (typeof(pvi_buf))malloc(6*pvi_dimensio*sizeof(typeof(*(X)))); \
+   pvi_inclinatio[0] = pvi_buf;\
+   pvi_inclinatio[1] = pvi_buf + 1*pvi_dimensio; \
+   pvi_inclinatio[2] = pvi_buf + 2*pvi_dimensio; \
+   pvi_inclinatio[3] = pvi_buf + 3*pvi_dimensio; \
+   pvi_Xaux[0] = pvi_buf + 4*pvi_dimensio; \
+   pvi_Xaux[1] = pvi_buf + 5*pvi_dimensio; \
 \
    pvi_h2 = 0.5 * pvi_h;\
    pvi_h6 = pvi_h / 6.0;\
@@ -156,14 +157,9 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
             2.0 * (pvi_inclinatio[1][pvi_index] + pvi_inclinatio[2][pvi_index])\
           );\
       }\
-      PVI_FAC_ALIQUID();\
+      PVI_FAC_ALIQUID \
    }\
-   free(pvi_inclinatio[0]);\
-   free(pvi_inclinatio[1]);\
-   free(pvi_inclinatio[2]);\
-   free(pvi_inclinatio[3]);\
-   free(pvi_Xaux[0]);\
-   free(pvi_Xaux[1]);\
+   free(pvi_buf);\
 }
 
 
@@ -177,11 +173,12 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
 {\
    size_t pvi_index;\
    double pvi_hh[2], pvi_finalis1;\
-   PVI_CORPUS \
+   typeof(*(X)) *pvi_buf, \
       *pvi_inclinatio[2] = { NULL, NULL };\
 \
-   pvi_inclinatio[0] = PVI_ALLOCARE();\
-   pvi_inclinatio[1] = PVI_ALLOCARE();\
+   pvi_buf = (typeof(pvi_buf))malloc(2*pvi_dimensio*sizeof(typeof(*(X)))); \
+   pvi_inclinatio[0] = pvi_buf; \
+   pvi_inclinatio[1] = pvi_buf + 1*pvi_dimensio; \
 \
    pvi_hh[0] = - 0.5 * pvi_h;\
    pvi_hh[1] = 1.5 * pvi_h;\
@@ -206,10 +203,9 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
       t += pvi_h;\
       for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
          pvi_inclinatio[0][pvi_index] = pvi_inclinatio[1][pvi_index];\
-      PVI_FAC_ALIQUID();\
+      PVI_FAC_ALIQUID \
    }\
-   free(pvi_inclinatio[0]);\
-   free(pvi_inclinatio[1]);\
+   free(pvi_buf);\
 }
 
 /* https://en.wikiversity.org/wiki/Adams-Bashforth_and_Adams-Moulton_methods */
@@ -217,12 +213,13 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
 {\
    size_t pvi_index;\
    double pvi_hh[3], pvi_finalis1;\
-   PVI_CORPUS \
+   typeof(*(X)) *pvi_buf, \
       *pvi_inclinatio[3] = { NULL, NULL, NULL };\
 \
-   pvi_inclinatio[0] = PVI_ALLOCARE();\
-   pvi_inclinatio[1] = PVI_ALLOCARE();\
-   pvi_inclinatio[2] = PVI_ALLOCARE();\
+   pvi_buf = (typeof(pvi_buf))malloc(3*pvi_dimensio*sizeof(typeof(*(X)))); \
+   pvi_inclinatio[0] = pvi_buf; \
+   pvi_inclinatio[1] = pvi_buf + 1*pvi_dimensio; \
+   pvi_inclinatio[2] = pvi_buf + 2*pvi_dimensio; \
 \
    pvi_hh[0] = pvi_h * 5.0 / 12.0;\
    pvi_hh[1] = pvi_h * (-4.0 / 3.0);\
@@ -256,24 +253,23 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
          pvi_inclinatio[0][pvi_index] = pvi_inclinatio[1][pvi_index];\
          pvi_inclinatio[1][pvi_index] = pvi_inclinatio[2][pvi_index];\
       }\
-      PVI_FAC_ALIQUID();\
+      PVI_FAC_ALIQUID \
    }\
-   free(pvi_inclinatio[0]);\
-   free(pvi_inclinatio[1]);\
-   free(pvi_inclinatio[2]);\
+   free(pvi_buf);\
 }
 
 #define PVI_INTEGRATOR_AB4(t, X, X_punctum) \
 {\
    size_t pvi_index;\
    double pvi_hh[4], pvi_finalis1;\
-   PVI_CORPUS \
+   typeof(*(X)) *pvi_buf, \
       *pvi_inclinatio[4] = { NULL, NULL, NULL, NULL };\
 \
-   pvi_inclinatio[0] = PVI_ALLOCARE();\
-   pvi_inclinatio[1] = PVI_ALLOCARE();\
-   pvi_inclinatio[2] = PVI_ALLOCARE();\
-   pvi_inclinatio[3] = PVI_ALLOCARE();\
+   pvi_buf = (typeof(pvi_buf))malloc(4*pvi_dimensio*sizeof(typeof(*(X)))); \
+   pvi_inclinatio[0] = pvi_buf; \
+   pvi_inclinatio[1] = pvi_buf + 1*pvi_dimensio; \
+   pvi_inclinatio[2] = pvi_buf + 2*pvi_dimensio; \
+   pvi_inclinatio[3] = pvi_buf + 3*pvi_dimensio; \
 \
    pvi_hh[0] = pvi_h * (-9.0 / 24.0);\
    pvi_hh[1] = pvi_h * (37.0 / 24.0);\
@@ -315,26 +311,24 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
          pvi_inclinatio[1][pvi_index] = pvi_inclinatio[2][pvi_index];\
          pvi_inclinatio[2][pvi_index] = pvi_inclinatio[3][pvi_index];\
       }\
-      PVI_FAC_ALIQUID();\
+      PVI_FAC_ALIQUID \
    }\
-   free(pvi_inclinatio[0]);\
-   free(pvi_inclinatio[1]);\
-   free(pvi_inclinatio[2]);\
-   free(pvi_inclinatio[3]);\
+   free(pvi_buf);\
 }
 
 #define PVI_INTEGRATOR_AB5(t, X, X_punctum) \
 {\
    size_t pvi_index;\
    double pvi_hh[5], pvi_finalis1;\
-   PVI_CORPUS \
+   typeof(*(X)) *pvi_buf, \
       *pvi_inclinatio[5] = { NULL, NULL, NULL, NULL, NULL };\
 \
-   pvi_inclinatio[0] = PVI_ALLOCARE();\
-   pvi_inclinatio[1] = PVI_ALLOCARE();\
-   pvi_inclinatio[2] = PVI_ALLOCARE();\
-   pvi_inclinatio[3] = PVI_ALLOCARE();\
-   pvi_inclinatio[4] = PVI_ALLOCARE();\
+   pvi_buf = (typeof(pvi_buf))malloc(5*pvi_dimensio*sizeof(typeof(*(X)))); \
+   pvi_inclinatio[0] = pvi_buf; \
+   pvi_inclinatio[1] = pvi_buf + 1*pvi_dimensio; \
+   pvi_inclinatio[2] = pvi_buf + 2*pvi_dimensio; \
+   pvi_inclinatio[3] = pvi_buf + 3*pvi_dimensio; \
+   pvi_inclinatio[4] = pvi_buf + 4*pvi_dimensio; \
 \
    pvi_hh[0] = pvi_h * 251.0 / 720.0;\
    pvi_hh[1] = pvi_h * (-1274.0 / 720.0);\
@@ -384,13 +378,9 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
          pvi_inclinatio[2][pvi_index] = pvi_inclinatio[3][pvi_index];\
          pvi_inclinatio[3][pvi_index] = pvi_inclinatio[4][pvi_index];\
       }\
-      PVI_FAC_ALIQUID();\
+      PVI_FAC_ALIQUID \
    }\
-   free(pvi_inclinatio[0]);\
-   free(pvi_inclinatio[1]);\
-   free(pvi_inclinatio[2]);\
-   free(pvi_inclinatio[3]);\
-   free(pvi_inclinatio[4]);\
+   free(pvi_buf);\
 }
 
 /* Dr. F.A.B.F. de Moura */
@@ -398,21 +388,22 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
 {\
    size_t pvi_index;\
    double pvi_hh[10], pvi_finalis1;\
-   PVI_CORPUS \
+   typeof(*(X)) *pvi_buf, \
       *pvi_inclinatio[10] = { \
       NULL, NULL, NULL, NULL, NULL, \
       NULL, NULL, NULL, NULL, NULL };\
 \
-   pvi_inclinatio[0] = PVI_ALLOCARE();\
-   pvi_inclinatio[1] = PVI_ALLOCARE();\
-   pvi_inclinatio[2] = PVI_ALLOCARE();\
-   pvi_inclinatio[3] = PVI_ALLOCARE();\
-   pvi_inclinatio[4] = PVI_ALLOCARE();\
-   pvi_inclinatio[5] = PVI_ALLOCARE();\
-   pvi_inclinatio[6] = PVI_ALLOCARE();\
-   pvi_inclinatio[7] = PVI_ALLOCARE();\
-   pvi_inclinatio[8] = PVI_ALLOCARE();\
-   pvi_inclinatio[9] = PVI_ALLOCARE();\
+   pvi_buf = (typeof(pvi_buf))malloc(10*pvi_dimensio*sizeof(typeof(*(X)))); \
+   pvi_inclinatio[0] = pvi_buf; \
+   pvi_inclinatio[1] = pvi_buf + 1*pvi_dimensio; \
+   pvi_inclinatio[2] = pvi_buf + 2*pvi_dimensio; \
+   pvi_inclinatio[3] = pvi_buf + 3*pvi_dimensio; \
+   pvi_inclinatio[4] = pvi_buf + 4*pvi_dimensio; \
+   pvi_inclinatio[5] = pvi_buf + 5*pvi_dimensio; \
+   pvi_inclinatio[6] = pvi_buf + 6*pvi_dimensio; \
+   pvi_inclinatio[7] = pvi_buf + 7*pvi_dimensio; \
+   pvi_inclinatio[8] = pvi_buf + 8*pvi_dimensio; \
+   pvi_inclinatio[9] = pvi_buf + 9*pvi_dimensio; \
 \
    pvi_hh[0] = pvi_h * (-2082753.0 / 7257600.0);\
    pvi_hh[1] = pvi_h * (20884811.0 / 7257600.0);\
@@ -502,18 +493,9 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
          pvi_inclinatio[7][pvi_index] = pvi_inclinatio[8][pvi_index];\
          pvi_inclinatio[8][pvi_index] = pvi_inclinatio[9][pvi_index];\
       }\
-      PVI_FAC_ALIQUID();\
+      PVI_FAC_ALIQUID \
    }\
-   free(pvi_inclinatio[0]);\
-   free(pvi_inclinatio[1]);\
-   free(pvi_inclinatio[2]);\
-   free(pvi_inclinatio[3]);\
-   free(pvi_inclinatio[4]);\
-   free(pvi_inclinatio[5]);\
-   free(pvi_inclinatio[6]);\
-   free(pvi_inclinatio[7]);\
-   free(pvi_inclinatio[8]);\
-   free(pvi_inclinatio[9]);\
+   free(pvi_buf);\
 }
 
 /* ------------------------------------
@@ -523,10 +505,11 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
 #define PVI_INTEGRATOR_ABM1(t, X, X_punctum) \
 {\
    size_t pvi_index;\
-   PVI_CORPUS *pvi_inclinatio = NULL, *pvi_Xaux = NULL;\
+   typeof(*(X)) *pvi_buf, *pvi_inclinatio = NULL, *pvi_Xaux = NULL;\
 \
-   pvi_inclinatio = PVI_ALLOCARE();\
-   pvi_Xaux = PVI_ALLOCARE();\
+   pvi_buf = (typeof(pvi_buf))malloc(2*pvi_dimensio*sizeof(typeof(*(X)))); \
+   pvi_inclinatio = pvi_buf; \
+   pvi_Xaux = pvi_buf + 1*pvi_dimensio; \
 \
    while(t < pvi_finalis){\
       /* ----- Preditor ----- */ \
@@ -541,22 +524,22 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
          pvi_inclinatio[pvi_index] = X_punctum(pvi_index, t, pvi_Xaux);\
       for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
          (X)[pvi_index] += pvi_inclinatio[pvi_index] * pvi_h;\
-      PVI_FAC_ALIQUID();\
+      PVI_FAC_ALIQUID \
    }\
-   free(pvi_inclinatio);\
-   free(pvi_Xaux);\
+   free(pvi_buf);\
 }
 
 #define PVI_INTEGRATOR_ABM2(t, X, X_punctum) \
 {\
    size_t pvi_index;\
    double pvi_hh[2], pvi_hhh[3], pvi_finalis1;\
-   PVI_CORPUS \
+   typeof(*(X)) *pvi_buf, \
       *pvi_inclinatio[2] = { NULL, NULL }, *pvi_Xaux;\
 \
-   pvi_inclinatio[0] = PVI_ALLOCARE();\
-   pvi_inclinatio[1] = PVI_ALLOCARE();\
-   pvi_Xaux = PVI_ALLOCARE();\
+   pvi_buf = (typeof(pvi_buf))malloc(3*pvi_dimensio*sizeof(typeof(*(X)))); \
+   pvi_inclinatio[0] = pvi_buf; \
+   pvi_inclinatio[1] = pvi_buf + 1*pvi_dimensio; \
+   pvi_Xaux = pvi_buf + 2*pvi_dimensio; \
    /* Coeficiente de Adans-Bashforth */\
    pvi_hh[0] = pvi_h * (-0.5);\
    pvi_hh[1] = pvi_h * 1.5;\
@@ -592,24 +575,23 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
             pvi_inclinatio[1][pvi_index] * pvi_hhh[1] + \
             pvi_inclinatio[0][pvi_index] * pvi_hhh[0];\
       }\
-      PVI_FAC_ALIQUID();\
+      PVI_FAC_ALIQUID \
    }\
-   free(pvi_inclinatio[0]);\
-   free(pvi_inclinatio[1]);\
-   free(pvi_Xaux);\
+   free(pvi_buf);\
 }
 
 #define PVI_INTEGRATOR_ABM3(t, X, X_punctum) \
 {\
    size_t pvi_index;\
    double pvi_hh[3], pvi_hhh[3], pvi_finalis1;\
-   PVI_CORPUS \
+   typeof(*(X)) *pvi_buf, \
       *pvi_inclinatio[3] = { NULL, NULL, NULL }, *pvi_Xaux;\
 \
-   pvi_inclinatio[0] = PVI_ALLOCARE();\
-   pvi_inclinatio[1] = PVI_ALLOCARE();\
-   pvi_inclinatio[2] = PVI_ALLOCARE();\
-   pvi_Xaux = PVI_ALLOCARE();\
+   pvi_buf = (typeof(pvi_buf))malloc(4*pvi_dimensio*sizeof(typeof(*(X)))); \
+   pvi_inclinatio[0] = pvi_buf; \
+   pvi_inclinatio[1] = pvi_buf + 1*pvi_dimensio; \
+   pvi_inclinatio[2] = pvi_buf + 2*pvi_dimensio; \
+   pvi_Xaux = pvi_buf + 3*pvi_dimensio; \
    /* Coeficiente de Adans-Bashforth */\
    pvi_hh[0] = pvi_h * 5.0 / 12.0;\
    pvi_hh[1] = pvi_h * (-4.0 / 3.0);\
@@ -656,26 +638,24 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
             pvi_inclinatio[1][pvi_index] * pvi_hhh[1] + \
             pvi_inclinatio[0][pvi_index] * pvi_hhh[0];\
       }\
-      PVI_FAC_ALIQUID();\
+      PVI_FAC_ALIQUID \
    }\
-   free(pvi_inclinatio[0]);\
-   free(pvi_inclinatio[1]);\
-   free(pvi_inclinatio[2]);\
-   free(pvi_Xaux);\
+   free(pvi_buf);\
 }
 
 #define PVI_INTEGRATOR_ABM4(t, X, X_punctum) \
 {\
    size_t pvi_index;\
    double pvi_hh[4], pvi_hhh[4], pvi_finalis1;\
-   PVI_CORPUS \
+   typeof(*(X)) *pvi_buf, \
       *pvi_inclinatio[4] = { NULL, NULL, NULL, NULL }, *pvi_Xaux;\
 \
-   pvi_inclinatio[0] = PVI_ALLOCARE();\
-   pvi_inclinatio[1] = PVI_ALLOCARE();\
-   pvi_inclinatio[2] = PVI_ALLOCARE();\
-   pvi_inclinatio[3] = PVI_ALLOCARE();\
-   pvi_Xaux = PVI_ALLOCARE();\
+   pvi_buf = (typeof(pvi_buf))malloc(5*pvi_dimensio*sizeof(typeof(*(X)))); \
+   pvi_inclinatio[0] = pvi_buf; \
+   pvi_inclinatio[1] = pvi_buf + 1*pvi_dimensio; \
+   pvi_inclinatio[2] = pvi_buf + 2*pvi_dimensio; \
+   pvi_inclinatio[3] = pvi_buf + 3*pvi_dimensio; \
+   pvi_Xaux = pvi_buf + 4*pvi_dimensio; \
    /* Coeficiente de Adans-Bashforth */\
    pvi_hh[0] = pvi_h * (-9.0 / 24.0);\
    pvi_hh[1] = pvi_h * (37.0 / 24.0);\
@@ -732,28 +712,25 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
             pvi_inclinatio[1][pvi_index] * pvi_hhh[1] + \
             pvi_inclinatio[0][pvi_index] * pvi_hhh[0];\
       }\
-      PVI_FAC_ALIQUID();\
+      PVI_FAC_ALIQUID \
    }\
-   free(pvi_inclinatio[0]);\
-   free(pvi_inclinatio[1]);\
-   free(pvi_inclinatio[2]);\
-   free(pvi_inclinatio[3]);\
-   free(pvi_Xaux);\
+   free(pvi_buf);\
 }
 
 #define PVI_INTEGRATOR_ABM5(t, X, X_punctum) \
 {\
    size_t pvi_index;\
    double pvi_hh[5], pvi_hhh[5], pvi_finalis1;\
-   PVI_CORPUS \
+   typeof(*(X)) *pvi_buf, \
       *pvi_inclinatio[5] = { NULL, NULL, NULL, NULL, NULL }, *pvi_Xaux;\
 \
-   pvi_inclinatio[0] = PVI_ALLOCARE();\
-   pvi_inclinatio[1] = PVI_ALLOCARE();\
-   pvi_inclinatio[2] = PVI_ALLOCARE();\
-   pvi_inclinatio[3] = PVI_ALLOCARE();\
-   pvi_inclinatio[4] = PVI_ALLOCARE();\
-   pvi_Xaux = PVI_ALLOCARE();\
+   pvi_buf = (typeof(pvi_buf))malloc(6*pvi_dimensio*sizeof(typeof(*(X)))); \
+   pvi_inclinatio[0] = pvi_buf; \
+   pvi_inclinatio[1] = pvi_buf + 1*pvi_dimensio; \
+   pvi_inclinatio[2] = pvi_buf + 2*pvi_dimensio; \
+   pvi_inclinatio[3] = pvi_buf + 3*pvi_dimensio; \
+   pvi_inclinatio[4] = pvi_buf + 4*pvi_dimensio; \
+   pvi_Xaux = pvi_buf + 5*pvi_dimensio; \
    /* Coeficiente de Adans-Bashforth */\
    pvi_hh[0] = pvi_h * 251.0 / 720.0;\
    pvi_hh[1] = pvi_h * (-1274.0 / 720.0);\
@@ -820,36 +797,32 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
             pvi_inclinatio[1][pvi_index] * pvi_hhh[1] + \
             pvi_inclinatio[0][pvi_index] * pvi_hhh[0];\
       }\
-      PVI_FAC_ALIQUID();\
+      PVI_FAC_ALIQUID \
    }\
-   free(pvi_inclinatio[0]);\
-   free(pvi_inclinatio[1]);\
-   free(pvi_inclinatio[2]);\
-   free(pvi_inclinatio[3]);\
-   free(pvi_inclinatio[4]);\
-   free(pvi_Xaux);\
+   free(pvi_buf);\
 }
 
 #define PVI_INTEGRATOR_ABM10(t, X, X_punctum) \
 {\
    size_t pvi_index;\
    double pvi_hh[10], pvi_hhh[10], pvi_finalis1;\
-   PVI_CORPUS \
+   typeof(*(X)) *pvi_buf, \
       *pvi_inclinatio[10] = { \
       NULL, NULL, NULL, NULL, NULL, \
       NULL, NULL, NULL, NULL, NULL }, *pvi_Xaux;\
 \
-   pvi_inclinatio[0] = PVI_ALLOCARE();\
-   pvi_inclinatio[1] = PVI_ALLOCARE();\
-   pvi_inclinatio[2] = PVI_ALLOCARE();\
-   pvi_inclinatio[3] = PVI_ALLOCARE();\
-   pvi_inclinatio[4] = PVI_ALLOCARE();\
-   pvi_inclinatio[5] = PVI_ALLOCARE();\
-   pvi_inclinatio[6] = PVI_ALLOCARE();\
-   pvi_inclinatio[7] = PVI_ALLOCARE();\
-   pvi_inclinatio[8] = PVI_ALLOCARE();\
-   pvi_inclinatio[9] = PVI_ALLOCARE();\
-   pvi_Xaux = PVI_ALLOCARE();\
+   pvi_buf = (typeof(pvi_buf))malloc(11*pvi_dimensio*sizeof(typeof(*(X)))); \
+   pvi_inclinatio[0] = pvi_buf; \
+   pvi_inclinatio[1] = pvi_buf + 1*pvi_dimensio; \
+   pvi_inclinatio[2] = pvi_buf + 2*pvi_dimensio; \
+   pvi_inclinatio[3] = pvi_buf + 3*pvi_dimensio; \
+   pvi_inclinatio[4] = pvi_buf + 4*pvi_dimensio; \
+   pvi_inclinatio[5] = pvi_buf + 5*pvi_dimensio; \
+   pvi_inclinatio[6] = pvi_buf + 6*pvi_dimensio; \
+   pvi_inclinatio[7] = pvi_buf + 7*pvi_dimensio; \
+   pvi_inclinatio[8] = pvi_buf + 8*pvi_dimensio; \
+   pvi_inclinatio[9] = pvi_buf + 9*pvi_dimensio; \
+   pvi_Xaux = pvi_buf + 10*pvi_dimensio; \
    /* Coeficiente de Adans-Bashforth */\
    pvi_hh[0] = pvi_h * (-2082753.0 / 7257600.0);\
    pvi_hh[1] = pvi_h * (20884811.0 / 7257600.0);\
@@ -966,57 +939,47 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
             pvi_inclinatio[1][pvi_index] * pvi_hhh[1] + \
             pvi_inclinatio[0][pvi_index] * pvi_hhh[0];\
       }\
-      PVI_FAC_ALIQUID();\
+      PVI_FAC_ALIQUID \
    }\
-   free(pvi_inclinatio[0]);\
-   free(pvi_inclinatio[1]);\
-   free(pvi_inclinatio[2]);\
-   free(pvi_inclinatio[3]);\
-   free(pvi_inclinatio[4]);\
-   free(pvi_inclinatio[5]);\
-   free(pvi_inclinatio[6]);\
-   free(pvi_inclinatio[7]);\
-   free(pvi_inclinatio[8]);\
-   free(pvi_inclinatio[9]);\
-   free(pvi_Xaux);\
+   free(pvi_buf);\
 }
 
 /* ------------------------------------
    Metodos simpleticos
 ----------------------------------- */
 
-#define PVI_INTEGRATOR_EULER_S(t, X, Y, X_punctum, Y_punctum) \
+#define PVI_INTEGRATOR_EULER_S(t, X, X_punctum) \
 {\
    size_t pvi_index;\
    while(t < pvi_finalis){\
-      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
-         (X)[pvi_index] += X_punctum(pvi_index, Y) * pvi_h;\
-      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
-         (Y)[pvi_index] += Y_punctum(pvi_index, X) * pvi_h;\
+      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, X) * pvi_h;\
+      for(pvi_index = (size_t)1; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, X) * pvi_h;\
       t += pvi_h;\
-      PVI_FAC_ALIQUID();\
+      PVI_FAC_ALIQUID \
    }\
 }
 
-#define PVI_INTEGRATOR_VERLET(t, X, Y, X_punctum, Y_punctum) \
+#define PVI_INTEGRATOR_VERLET(t, X, X_punctum) \
 {\
    size_t pvi_index;\
    double pvi_hh; \
    pvi_hh = pvi_h * 0.5;\
 \
    while(t < pvi_finalis){\
-      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
-         (X)[pvi_index] += X_punctum(pvi_index, Y) * pvi_hh;\
-      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
-         (Y)[pvi_index] += Y_punctum(pvi_index, X) * pvi_h;\
-      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
-         (X)[pvi_index] += X_punctum(pvi_index, Y) * pvi_hh;\
+      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, X) * pvi_hh;\
+      for(pvi_index = (size_t)1; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, X) * pvi_h;\
+      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, X) * pvi_hh;\
       t += pvi_h;\
-      PVI_FAC_ALIQUID();\
+      PVI_FAC_ALIQUID \
    }\
 }
 
-#define PVI_INTEGRATOR_RUTH3(t, X, Y, X_punctum, Y_punctum) \
+#define PVI_INTEGRATOR_RUTH3(t, X, X_punctum) \
 {\
    size_t pvi_index;\
    double pvi_hh[6]; \
@@ -1028,26 +991,26 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
    pvi_hh[5] = pvi_h;\
 \
    while(t < pvi_finalis){\
-      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
-         (Y)[pvi_index] += Y_punctum(pvi_index, X) * pvi_hh[0];\
-      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
-         (X)[pvi_index] += X_punctum(pvi_index, Y) * pvi_hh[1];\
-      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
-         (Y)[pvi_index] += Y_punctum(pvi_index, X) * pvi_hh[2];\
-      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
-         (X)[pvi_index] += X_punctum(pvi_index, Y) * pvi_hh[3];\
-      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
-         (Y)[pvi_index] += Y_punctum(pvi_index, X) * pvi_hh[4];\
-      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
-         (X)[pvi_index] += X_punctum(pvi_index, Y) * pvi_hh[5];\
+      for(pvi_index = (size_t)1; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, X) * pvi_hh[0];\
+      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, X) * pvi_hh[1];\
+      for(pvi_index = (size_t)1; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, X) * pvi_hh[2];\
+      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, X) * pvi_hh[3];\
+      for(pvi_index = (size_t)1; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, X) * pvi_hh[4];\
+      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, X) * pvi_hh[5];\
       t += pvi_h;\
-      PVI_FAC_ALIQUID();\
+      PVI_FAC_ALIQUID \
    }\
 }
 
 #define PVI_RAIZ_CUBICA_2 1.25992104989
 
-#define PVI_INTEGRATOR_RUTH4(t, X, Y, X_punctum, Y_punctum) \
+#define PVI_INTEGRATOR_RUTH4(t, X, X_punctum) \
 {\
    size_t pvi_index;\
    double pvi_hh[4]; \
@@ -1057,22 +1020,22 @@ static double pvi_h = 0.1, pvi_finalis = 1.0;
    pvi_hh[3] = pvi_h * (-PVI_RAIZ_CUBICA_2 / (2.0 - PVI_RAIZ_CUBICA_2));\
 \
    while(t < pvi_finalis){\
-      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
-         (X)[pvi_index] += X_punctum(pvi_index, Y) * pvi_hh[0];\
-      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
-         (Y)[pvi_index] += Y_punctum(pvi_index, X) * pvi_hh[1];\
-      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
-         (X)[pvi_index] += X_punctum(pvi_index, Y) * pvi_hh[2];\
-      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
-         (Y)[pvi_index] += Y_punctum(pvi_index, X) * pvi_hh[3];\
-      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
-         (X)[pvi_index] += X_punctum(pvi_index, Y) * pvi_hh[2];\
-      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
-         (Y)[pvi_index] += Y_punctum(pvi_index, X) * pvi_hh[1];\
-      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
-         (X)[pvi_index] += X_punctum(pvi_index, Y) * pvi_hh[0];\
+      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, X) * pvi_hh[0];\
+      for(pvi_index = (size_t)1; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, X) * pvi_hh[1];\
+      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, X) * pvi_hh[2];\
+      for(pvi_index = (size_t)1; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, X) * pvi_hh[3];\
+      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, X) * pvi_hh[2];\
+      for(pvi_index = (size_t)1; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, X) * pvi_hh[1];\
+      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, X) * pvi_hh[0];\
       t += pvi_h;\
-      PVI_FAC_ALIQUID();\
+      PVI_FAC_ALIQUID \
    }\
 }
 

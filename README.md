@@ -1,11 +1,11 @@
 # Problema Valoris Inicialis
 
 *Problema Valoris Inicialis*, ou simplesmente PVI,
-é uma biblioteca que
+é um cabeçalho para C que
 oferece diversas rotinas implementadas na forma de macros para
 resolver numericamente o problema de valor inicial.
 
-Última modificação: 08 de abril de 2024.
+Última modificação: 07 de janeiro de 2026.
 
 ```C
 #include "pvi.h"
@@ -154,6 +154,19 @@ Mudanças no caso simplético:
   ```
 
 ## Exemplos
+
+Se seu compilador é o `clang` use o seguinte comando para
+compilar, executar e plotar um exemplo:
+
+```sh
+clang -std=c23 -flto -O3 main.c -o main -lm && time ./main && gnuplot plot.gp
+```
+
+Para remover os arquivos gerados use o seguinte comando:
+
+```sh
+rm main dados.dat figura.png
+```
 
 ## Contato e doações
 
