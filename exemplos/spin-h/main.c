@@ -8,13 +8,14 @@
 #undef PVI_CORPUS
 #define PVI_CORPUS double _Complex
 
-static double complex Psi[2], D[2][2];
+static double complex Psi[2];
 static double complex alpha, beta;
-static double t;
+static double t, D[4][4];
 static FILE *arquivo;
 static int exit_code;
 
-#define dot_Psi(i, t, Psi) (D[i][0] * Psi[0] + D[i][1] * Psi[1])
+#define dot_Psi(i, t, X) (\
+   D[i][0]*(X)[0] + D[i][1]*(X)[1] + D[i][2]*(X)[2] + D[i][3]*(X)[3])
 
 static bool escrever_arquivo(void);
 #undef  PVI_FAC_ALIQUID
@@ -33,18 +34,35 @@ int main(void){
    alpha = CMPLX(0.0, 1.0);
    beta  = CMPLX(0.1, 0.3);
 
-   D[0][0] = alpha;        D[0][1] = beta;
-   D[1][0] = -conj(beta);  D[1][1] = -alpha;
+   // D[0][0] = alpha;        D[0][1] = beta;
+   // D[1][0] = -conj(beta);  D[1][1] = -alpha;
+
+   double complex z = alpha;
+   D[0][0] = creal(z);  D[0][1] = -cimag(z);
+   D[1][0] = -D[0][1];  D[1][1] = D[0][0];
+
+   z = beta;
+   D[0][2] = creal(z);  D[0][3] = -cimag(z);
+   D[1][2] = -D[0][3];  D[1][3] = D[0][2];
+
+   z = -conj(beta);
+   D[2][0] = creal(z);  D[2][1] = -cimag(z);
+   D[3][0] = -D[2][1];  D[3][1] = D[2][0];
+
+   z = -alpha;
+   D[2][2] = creal(z);  D[2][3] = -cimag(z);
+   D[3][2] = -D[2][3];  D[3][3] = D[2][2];
 
    t = 0.0;
    Psi[0] = CMPLX(0.85, 0.0);
    Psi[1] = CMPLX(sqrt(1.0 - 0.85*0.85), 0.0);
 
-   pvi_dimensio = 2;
+   pvi_dimensio = 4;
    pvi_finalis = 10.0;
    pvi_h = 1.0e-2;
 
-   PVI_INTEGRATOR_RK4(t, Psi, dot_Psi);
+   /* FIXME: There are no symplectic integrator for non-separable hamiltonian */
+   PVI_INTEGRATOR_EULER_SYMPLECTICUS_IMPLICITUS(t, (double*)Psi, dot_Psi);
 
    fclose(arquivo);
 

@@ -36,8 +36,10 @@ Métodos previsor-corretor:
 - [x] Adams-Bashforth-Moulton de dez passos: `ABM10`
 
 Métodos simpléticos:
-- [x] Euler semi-implícito: `EULER_S`
+- [x] Euler symplecticus: `EULER_SYMPLECTICUS`
+- [ ] Euler implícito: `EULER_SYMPLECTICUS_IMPLICITUS`
 - [x] Störmer-Verlet: `VERLET`
+- [ ] Störmer-Verlet implícito: `VERLET_IMPLICITUS`
 - [x] Ruth de terceira ordem: `RUTH3`
 - [x] Ruth de quarta ordem: `RUTH4`
 
@@ -88,20 +90,15 @@ Um integrador é simplético se também for um simplectomorfismo.
   ```c
   #include "pvi.h"
   ```
-* Por padrão um estado é representado por escalares reais,
-  se for necessário utilizar os complexos faça como abaixo.
-  ```c
-  #undef PVI_CORPUS
-  #define PVI_CORPUS double _Complex // Compilar com c99 ou mais recente.
-  ```
 * Implemente sua lei de evolução, uma função do tipo, como abaixo.
   ```c
   #define f(i, t, x) /* .... */
   /* ou */
-  static PVI_CORPUS f(size_t i, double t, PVI_CORPUS *x){ /* .... */ }
+  static double f(size_t i, double t, double *x){ /* .... */ }
+  static double _Complex f(size_t i, double t, double _Complex *x){ /* .... */ }
   ```
   O usuário é livre para usar o nome que quiser no lugar de `f`.
-* Já na rotina, defina o tempo limite de integração 
+* Já na rotina, defina o tempo limite de integração
   e o tamanho do passo $h$, como abaixo.
   ```c
   pvi_finalis = /* valor double */;
@@ -111,14 +108,12 @@ Um integrador é simplético se também for um simplectomorfismo.
   ```c
   pvi_dimensio = /* valor size_t */;
   ```
-  Note que a no caso simplético o valor informado DEVE ser o grau de liberdade,
-  apesar do nome da variável.
 * Declare ponteiros e aloque memória para representar o estado,
   como abaixo.
   ```c
   double *x /* ou outro nome */;
   /* ... */
-  x = PVI_ALLOCARE(); /* Aloca memória conforme o valor de edo_dimensio */
+  x = malloc(pvi_dimensio*sizeof(double));
   ```
 * Defina o instante inicial e o estado inicial, como abaixo.
   ```c
@@ -135,23 +130,6 @@ Um integrador é simplético se também for um simplectomorfismo.
   ```
   O sufixo `EULER` deve ser substituído pelo do método desejado,
   verifique as opções disponíveis na sessão "Integradores".
-
-Mudanças no caso simplético:
-* É necessário declarar dois ponteiros para representar o estado, bem como
-  alocar memória para ambos.
-* É necessário implementar duas funções para a lei de evolução, como abaixo.
-  ```c
-  #define f(i, y) /* ... */
-  #define g(i, x) /* ... */
-  /* ou */
-  static double f(size_t i, double *y){ /* ... */ }
-  static double g(size_t i, double *x){ /* ... */ }
-  ```
-* O valor de `pvi_dimensio` deve ser $d/2$ em vez de $d$.
-* A chamada do integrador deve informar os nomes extras, como abaixo.
-  ```c
-  PVI_INTEGRATOR_EULER_S(t, x, y, f, g);
-  ```
 
 ## Exemplos
 

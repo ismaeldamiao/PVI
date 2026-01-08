@@ -35,15 +35,17 @@ extern "C" {
 #endif
 
 #if !defined(__STDC__)
-# error "Utilize um compilador compativel com o ISO C."
+# error Utilize um compilador compativel com o ISO C.
 #endif /* __STDC__ */
+
+#if __STDC_VERSION__ < 202311L
+# error Utilize um compilador compativel com o ISO C23.
+#endif /* __STDC_VERSION__ */
 
 #include <stddef.h>
 #include <stdlib.h>
 
-#define PVI_CORPUS typeof(*(X))
 #define PVI_FAC_ALIQUID
-#define PVI_ALLOCARE() (PVI_CORPUS*)malloc(pvi_dimensio*sizeof(PVI_CORPUS))
 
 static size_t pvi_dimensio = (size_t)1;
 static double pvi_h = 0.125, pvi_finalis = 1.0;
@@ -948,7 +950,7 @@ static double pvi_h = 0.125, pvi_finalis = 1.0;
    Metodos simpleticos
 ----------------------------------- */
 
-#define PVI_INTEGRATOR_EULER_S(t, X, X_punctum) \
+#define PVI_INTEGRATOR_EULER_SYMPLECTICUS(t, X, X_punctum) \
 {\
    size_t pvi_index;\
    while(t < pvi_finalis){\
@@ -959,6 +961,33 @@ static double pvi_h = 0.125, pvi_finalis = 1.0;
       t += pvi_h;\
       PVI_FAC_ALIQUID \
    }\
+}
+
+// DOING:
+#define PVI_INTEGRATOR_EULER_SYMPLECTICUS_IMPLICITUS(t, X, X_punctum) \
+{\
+   size_t pvi_index;\
+   typeof(*(X)) *pvi_Xaux, *pvi_inclinatio;\
+\
+   pvi_Xaux = (typeof(pvi_Xaux)) \
+      malloc(2*pvi_dimensio*sizeof(typeof(*(X))));\
+   pvi_inclinatio = pvi_Xaux + pvi_dimensio; \
+\
+   while(t < pvi_finalis){\
+      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
+         pvi_Xaux[pvi_index] = (X)[pvi_index] + X_punctum(pvi_index, t, X) * pvi_h,\
+         ++pvi_index,\
+         pvi_Xaux[pvi_index] = (X)[pvi_index];\
+      for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += X_punctum(pvi_index, t, pvi_Xaux) * pvi_h;\
+      for(pvi_index = (size_t)1; pvi_index < pvi_dimensio; pvi_index += 2)\
+         pvi_inclinatio[pvi_index] = X_punctum(pvi_index, t, X);\
+      for(pvi_index = (size_t)1; pvi_index < pvi_dimensio; pvi_index += 2)\
+         (X)[pvi_index] += pvi_inclinatio[pvi_index] * pvi_h;\
+      t += pvi_h;\
+      PVI_FAC_ALIQUID \
+   }\
+   free(pvi_Xaux);\
 }
 
 #define PVI_INTEGRATOR_VERLET(t, X, X_punctum) \
