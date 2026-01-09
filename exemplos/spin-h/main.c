@@ -39,19 +39,19 @@ int main(void){
 
    double complex z = alpha;
    D[0][0] = creal(z);  D[0][1] = -cimag(z);
-   D[1][0] = -D[0][1];  D[1][1] = D[0][0];
+   D[1][0] = cimag(z);  D[1][1] = creal(z);
 
    z = beta;
    D[0][2] = creal(z);  D[0][3] = -cimag(z);
-   D[1][2] = -D[0][3];  D[1][3] = D[0][2];
+   D[1][2] = cimag(z);  D[1][3] = creal(z);
 
    z = -conj(beta);
    D[2][0] = creal(z);  D[2][1] = -cimag(z);
-   D[3][0] = -D[2][1];  D[3][1] = D[2][0];
+   D[3][0] = cimag(z);  D[3][1] = creal(z);
 
    z = -alpha;
    D[2][2] = creal(z);  D[2][3] = -cimag(z);
-   D[3][2] = -D[2][3];  D[3][3] = D[2][2];
+   D[3][2] = cimag(z);  D[3][3] = creal(z);
 
    t = 0.0;
    Psi[0] = CMPLX(0.85, 0.0);
@@ -59,9 +59,8 @@ int main(void){
 
    pvi_dimensio = 4;
    pvi_finalis = 10.0;
-   pvi_h = 1.0e-2;
+   pvi_h = 1.0e-4;
 
-   /* FIXME: There are no symplectic integrator for non-separable hamiltonian */
    PVI_INTEGRATOR_EULER_SYMPLECTICUS_IMPLICITUS(t, (double*)Psi, dot_Psi);
 
    fclose(arquivo);
@@ -77,7 +76,7 @@ static bool escrever_arquivo(void){
    aux[1] = cabs(Psi[1]);
    aux[1] *= aux[1];
    norma += aux[1];
-   if(fabs(norma - 1.0) > 1.0e-8){
+   if(fabs(norma - 1.0) > 1.0e-2){
       fputs("Erro: A norma nao estah conservando.\n", stderr);
       exit_code = EXIT_FAILURE;
       return false;

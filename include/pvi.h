@@ -967,17 +967,19 @@ static double pvi_h = 0.125, pvi_finalis = 1.0;
 #define PVI_INTEGRATOR_EULER_SYMPLECTICUS_IMPLICITUS(t, X, X_punctum) \
 {\
    size_t pvi_index;\
-   typeof(*(X)) *pvi_Xaux, *pvi_inclinatio;\
+   typeof(*(X)) *pvi_buf, *pvi_Xaux, *pvi_inclinatio;\
 \
-   pvi_Xaux = (typeof(pvi_Xaux)) \
-      malloc(2*pvi_dimensio*sizeof(typeof(*(X))));\
-   pvi_inclinatio = pvi_Xaux + pvi_dimensio; \
+   pvi_buf = (typeof(pvi_buf))malloc(2*pvi_dimensio*sizeof(typeof(*(X))));\
+   pvi_inclinatio = pvi_buf;\
+   pvi_Xaux = pvi_buf + pvi_dimensio;\
 \
    while(t < pvi_finalis){\
+      /* ----- Preditor ----- */ \
       for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; ++pvi_index)\
          pvi_Xaux[pvi_index] = (X)[pvi_index] + X_punctum(pvi_index, t, X) * pvi_h,\
          ++pvi_index,\
          pvi_Xaux[pvi_index] = (X)[pvi_index];\
+      /* ----- Corretor ----- */ \
       for(pvi_index = (size_t)0; pvi_index < pvi_dimensio; pvi_index += 2)\
          (X)[pvi_index] += X_punctum(pvi_index, t, pvi_Xaux) * pvi_h;\
       for(pvi_index = (size_t)1; pvi_index < pvi_dimensio; pvi_index += 2)\
@@ -987,7 +989,7 @@ static double pvi_h = 0.125, pvi_finalis = 1.0;
       t += pvi_h;\
       PVI_FAC_ALIQUID \
    }\
-   free(pvi_Xaux);\
+   free(pvi_buf);\
 }
 
 #define PVI_INTEGRATOR_VERLET(t, X, X_punctum) \
