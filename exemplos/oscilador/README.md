@@ -85,11 +85,11 @@ rm main dados.dat figura_*.png
 Lorem ipsum
 
 <p align="center">
-  <img src="figuras_00.png" alt="posição" width="60%" />
+  <img src="figuras/00.png" alt="posição" width="60%" />
 </p>
 
 Lorem ipsum
 
 <p align="center">
-  <img src="figuras_01.png" alt="fase" width="60%" />
+  <img src="figuras/01.png" alt="fase" width="60%" />
 </p>
