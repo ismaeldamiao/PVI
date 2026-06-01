@@ -2,21 +2,19 @@
 #include <stdlib.h>
 //#include <math.h>
 
-#include "../../include/pvi.h"
+#include "../../../include/pvi.h"
 
-static double buf[2];
-static double gamma;
 static double t;
+static double x[2];
+#define f(i, t, x) (F[i])()
+
+static double gamma;
+
+static double dot_x0(void){ return x[1]; }
+static double dot_x1(void){ return -(x[0] + gamma * x[1] + 1.0); }
+static typeof(double(void)) *F[] = { dot_x0, dot_x1 };
+
 static FILE *arquivo;
-
-#define Q (buf[0])
-#define P (buf[1])
-
-static double dot_Q(void){ return P; }
-static double dot_P(void){ return (-(Q + gamma * P) + 1.0); }
-static typeof(double(void)) *g[] = { dot_Q, dot_P };
-#define f(i, t, x)   (g[i])()
-
 static bool escrever_arquivo(void);
 #undef  PVI_FAC_ALIQUID
 #define PVI_FAC_ALIQUID if(!escrever_arquivo()) break;
@@ -32,14 +30,14 @@ int main(void){
    gamma = 0.5;
 
    t = 0.0;
-   Q = 0.0;
-   P = 0.0;
+   x[0] = 0.0;
+   x[1] = 0.0;
 
    pvi_dimensio = 2;
-   pvi_finalis = 10.0;
+   pvi_finalis = 20.0;
    pvi_h = 1.0e-1;
 
-   PVI_INTEGRATOR_RK4(t, buf, f);
+   PVI_INTEGRATOR_RK4(t, x, f);
 
    fclose(arquivo);
 
@@ -47,6 +45,6 @@ int main(void){
 }
 
 static bool escrever_arquivo(void){
-   fprintf(arquivo, "%g %g %g\n", t, Q, P);
+   fprintf(arquivo, "%g %g %g\n", t, x[0], x[1]);
    return true;
 }

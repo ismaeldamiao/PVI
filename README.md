@@ -5,13 +5,16 @@
 oferece diversas rotinas implementadas na forma de macros para
 resolver numericamente o problema de valor inicial.
 
-Última modificação: 07 de janeiro de 2026.
+Última modificação: 01 de junho de 2026.
 
 ```C
 #include "pvi.h"
 ```
 
 ## Integradores
+
+Seque a lista completa de integradores suportados (ou com suporte planejado)
+pelo projeto.
 
 Métodos de Runge-Kutta:
 - [x] Euler: `EULER`
@@ -36,18 +39,12 @@ Métodos previsor-corretor:
 - [x] Adams-Bashforth-Moulton de dez passos: `ABM10`
 
 Métodos simpléticos:
-- [x] Euler symplecticus: `EULER_SYMPLECTICUS`
+- [x] Euler simpléticos: `EULER_SYMPLECTICUS`
 - [ ] Euler implícito: `EULER_SYMPLECTICUS_IMPLICITUS`
 - [x] Störmer-Verlet: `VERLET`
 - [ ] Störmer-Verlet implícito: `VERLET_IMPLICITUS`
 - [x] Ruth de terceira ordem: `RUTH3`
 - [x] Ruth de quarta ordem: `RUTH4`
-
-## Instruções de uso
-
-Statistica é uma implementação do cabeçalho especificado
-em [05-pvi.md](../../spec/textual/05-pvi.md),
-a especificação deve ser consultada para maiores detalhes.
 
 ## Teoria
 
@@ -154,9 +151,9 @@ relatando falhas, fazendo sugestões ou fazendo uma doação.
 Autor: [I.F.F. dos Santos](https://github.com/ismaeldamiao)
 
 - Endereço eletrônico: [ismaellxd@gmail.com](mailto:ismaellxd@gmail.com)
-- Instagram: [@ismael_damiao_al](https://www.instagram.com/ismael_damiao_al/)
+- LinkedIn: [ismael-f-f-dos-santos](https://www.linkedin.com/in/ismael-f-f-dos-santos)
 
 Doações:
 
 - PayPal: <https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=D66EM3DGU35EE>.
-- PIX: Use a chave PIX `ismaellxd@gmail.com` ou o [código QR](../../QR_PIX.svg).
+- PIX: Use a chave PIX `ismaellxd@gmail.com`.
